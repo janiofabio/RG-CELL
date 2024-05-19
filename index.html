@@ -28,7 +28,7 @@
         <h2 class="message"></h2>
         <span>Selecione ou Capture a Imagem</span>
         <input type="file" class="file" accept="image/*" capture="environment">
-        <button class="btn">Gerar PDF e OCR</button>
+        <button class="btn">Gerar OCR</button>
         <video id="video" autoplay style="display:none;"></video>
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
@@ -40,48 +40,43 @@
         let btn = document.querySelector(".btn");
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
-        let capturedImage = null;
 
         btn.addEventListener('click', () => {
-            if (capturedImage) {
-                convertImageToPDF();
+            let file = fileInput.files[0];
+            if (file) {
+                processImage(file);
             } else {
-                alert("Por favor, capture uma imagem antes de gerar o PDF e OCR.");
+                alert("Selecione uma imagem antes de gerar o OCR.");
             }
         });
 
         fileInput.addEventListener('change', () => {
             let file = fileInput.files[0];
             if (file) {
-                captureImage();
+                displayImage(file);
             }
         });
 
-        const captureImage = () => {
-            const constraints = {
-                video: {
-                    facingMode: { exact: "environment" } // Use rear camera
-                }
+        const displayImage = (file) => {
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                let imageDataUrl = reader.result;
+                let img = new Image();
+                img.src = imageDataUrl;
+                img.onload = () => {
+                    let ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                };
             };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(stream => {
-                    video.style.display = 'block';
-                    video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        video.play();
-                    };
-                })
-                .catch(error => {
-                    console.error("Erro ao acessar a câmera: ", error);
-                    alert("Erro ao acessar a câmera traseira. Por favor, verifique as permissões.");
-                });
         };
 
-        const convertImageToPDF = () => {
+        const processImage = (file) => {
             let pdf = new jsPDF();
-            pdf.addImage(capturedImage, 'PNG', 10, 10, 100, 100);
-
+            let imgData = canvas.toDataURL('image/jpeg');
+            pdf.addImage(imgData, 'JPEG', 0, 0);
             let pdfDataUri = pdf.output('datauristring');
 
             let fr = new FileReader();
@@ -94,7 +89,7 @@
                     body: JSON.stringify({
                         file: b64,
                         type: "application/pdf",
-                        name: "captured_image.pdf"
+                        name: file.name.split('.')[0] + ".pdf"
                     })
                 })
                 .then(res => res.text())
