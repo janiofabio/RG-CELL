@@ -38,11 +38,12 @@
             width: 80%;
             text-align: center;
         }
-        .capture-btn, .snap-btn {
-            display: none; /* Initially hide the buttons */
-        }
-        video, canvas {
+        video, .front-preview, .back-preview {
             display: none;
+            width: 80%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -50,14 +51,16 @@
     <div class="ocr">
         <h1>Imagem PDF OCR</h1>
         <h2 class="message"></h2>
-        <span>Selecione o PDF ou capture uma imagem</span>
+        <span>Selecione o PDF ou Capture Imagens</span>
         <input type="file" class="file">
         <button class="btn">Gerar OCR</button>
-        <button class="capture-btn">Capturar Imagem</button>
-        <button class="snap-btn">Tirar Foto</button>
-        <select class="camera-select" style="display:none;"></select>
-        <video id="video" width="320" height="240" autoplay></video>
-        <canvas id="canvas"></canvas>
+        <button class="capture-btn" style="display:none;">Capturar Imagens</button>
+        <video id="video" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <button class="snap-front-btn" style="display:none;">Capturar Frente</button>
+        <button class="snap-back-btn" style="display:none;">Capturar Traseira</button>
+        <img src="" class="front-preview">
+        <img src="" class="back-preview">
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>

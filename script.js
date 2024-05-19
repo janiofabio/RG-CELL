@@ -4,16 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector(".file");
     const btn = document.querySelector(".btn");
     const captureBtn = document.querySelector(".capture-btn");
-    const snapBtn = document.querySelector(".snap-btn");
+    const snapFrontBtn = document.querySelector(".snap-front-btn");
+    const snapBackBtn = document.querySelector(".snap-back-btn");
     const progressBarFill = document.querySelector(".progress-bar-fill");
     const progressInfo = document.querySelector(".progress-info");
+    const frontPreview = document.querySelector(".front-preview");
+    const backPreview = document.querySelector(".back-preview");
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
     let frontImage = null;
     let backImage = null;
 
-    // Detect if the user is on a mobile device
     const isMobileDevice = () => {
         return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     };
@@ -22,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
         captureBtn.style.display = 'block';
     }
 
-    // Process PDF file
     btn.addEventListener('click', () => {
         if (frontImage && backImage) {
             processImages(frontImage, backImage);
@@ -42,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Capture images from rear camera (front and back)
     captureBtn.addEventListener('click', async () => {
         const constraints = {
             video: {
@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.style.display = 'block';
-            snapBtn.style.display = 'block';
+            snapFrontBtn.style.display = 'block';
+            snapBackBtn.style.display = 'block';
             video.srcObject = stream;
         } catch (error) {
             console.error("Error accessing the camera: ", error);
@@ -62,24 +63,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Snap front photo
-    snapBtn.addEventListener('click', () => {
+    snapFrontBtn.addEventListener('click', () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         frontImage = canvas.toDataURL('image/png');
+        frontPreview.src = frontImage;
+        frontPreview.style.display = 'block';
         alert("Foto da frente capturada com sucesso!");
     });
 
-    // Process rear photo
-    snapBtn.addEventListener('dblclick', () => {
+    // Snap rear photo
+    snapBackBtn.addEventListener('click', () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         backImage = canvas.toDataURL('image/png');
+        backPreview.src = backImage;
+        backPreview.style.display = 'block';
         alert("Foto de trás capturada com sucesso!");
     });
 
-    // Function to process file
     const processFile = (file) => {
         msg.innerHTML = `Carregando...`;
         progressBarFill.style.width = '0%';
@@ -96,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Function to upload file or image to server and handle OCR
     const uploadToServer = (b64, type, name, startTime) => {
         let uploadProgress = setInterval(() => {
             let elapsed = Date.now() - startTime;
@@ -130,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Function to download text file
     const downloadTextFile = (text, filename) => {
         let blob = new Blob([text], { type: 'text/plain' });
         let url = window.URL.createObjectURL(blob);
