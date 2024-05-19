@@ -38,8 +38,11 @@
             width: 80%;
             text-align: center;
         }
-        .capture-btn {
-            display: none; /* Initially hide the button */
+        .capture-btn, .snap-btn {
+            display: none; /* Initially hide the buttons */
+        }
+        video, canvas {
+            display: none;
         }
     </style>
 </head>
@@ -51,8 +54,9 @@
         <input type="file" class="file">
         <button class="btn">Gerar OCR</button>
         <button class="capture-btn">Capturar Imagem</button>
-        <video id="video" width="320" height="240" autoplay style="display:none;"></video>
-        <canvas id="canvas" style="display:none;"></canvas>
+        <button class="snap-btn">Tirar Foto</button>
+        <video id="video" width="320" height="240" autoplay></video>
+        <canvas id="canvas"></canvas>
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>

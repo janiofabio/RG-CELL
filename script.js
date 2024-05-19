@@ -4,11 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector(".file");
     const btn = document.querySelector(".btn");
     const captureBtn = document.querySelector(".capture-btn");
+    const snapBtn = document.querySelector(".snap-btn");
     const progressBarFill = document.querySelector(".progress-bar-fill");
     const progressInfo = document.querySelector(".progress-info");
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+    let capturedImage = null;
 
     // Detect if the user is on a mobile device
     const isMobileDevice = () => {
@@ -21,37 +23,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Process PDF file
     btn.addEventListener('click', () => {
-        const file = fileInput.files[0];
-        if (!file) {
-            alert("Selecione um arquivo PDF primeiro.");
-            return;
-        }
+        if (capturedImage) {
+            processImage(capturedImage);
+        } else {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Selecione um arquivo PDF primeiro.");
+                return;
+            }
 
-        if (file.size > MAX_FILE_SIZE) {
-            alert("O arquivo é muito grande. O tamanho máximo é de 50MB.");
-            return;
-        }
+            if (file.size > MAX_FILE_SIZE) {
+                alert("O arquivo é muito grande. O tamanho máximo é de 50MB.");
+                return;
+            }
 
-        processFile(file);
+            processFile(file);
+        }
     });
 
     // Capture image from camera
     captureBtn.addEventListener('click', async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.style.display = 'block';
+        snapBtn.style.display = 'block';
         video.srcObject = stream;
+    });
 
-        const captureImage = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/png');
-            processImage(dataUrl);
-            stream.getTracks().forEach(track => track.stop());
-            video.style.display = 'none';
-        };
-
-        setTimeout(captureImage, 2000); // Capture image after 2 seconds
+    // Snap photo
+    snapBtn.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        capturedImage = canvas.toDataURL('image/png');
+        downloadImage(capturedImage, 'captured_image.png');
+        video.style.display = 'none';
+        snapBtn.style.display = 'none';
+        video.srcObject.getTracks().forEach(track => track.stop());
     });
 
     // Function to process file
@@ -120,6 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
+        a.remove();
+    };
+
+    // Function to download captured image
+    const downloadImage = (dataUrl, filename) => {
+        let a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = dataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
         a.remove();
     };
 });
