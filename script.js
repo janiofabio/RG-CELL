@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const api = "https://script.google.com/macros/s/AKfycbxGgPnMwV7MLIyhTfPIYqXbRA4-e6RJ8JGfF22h6dfkHH_m-slT6wC2GrsBfuxajhUD/exec";
+    const api = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";  // Update with your actual script ID
     const msg = document.querySelector(".message");
     const fileInput = document.querySelector(".file");
     const btn = document.querySelector(".btn");
