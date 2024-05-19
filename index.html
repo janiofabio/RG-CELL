@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -20,54 +20,120 @@
             font-size: 1.2em; /* Increased font size for better visibility */
             padding: 10px 20px; /* Added padding for larger clickable area */
         }
-        .progress-bar {
-            width: 80%;
-            height: 30px; /* Increased height for better visibility */
-            background-color: #f3f3f3;
-            border: 1px solid #ccc;
-            position: relative;
-            margin-top: 20px; /* Increased margin for better spacing */
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #4caf50;
-            width: 0%;
-            transition: width 0.5s;
-        }
-        .progress-info {
-            width: 80%;
-            text-align: center;
-            margin-top: 10px; /* Increased margin for better spacing */
-        }
-        video, .front-preview, .back-preview {
-            display: none;
-            width: 80%;
-            max-height: 300px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="ocr">
         <h1>Imagem PDF OCR</h1>
         <h2 class="message"></h2>
-        <span>Selecione o PDF ou Capture Imagens</span>
-        <input type="file" class="file">
+        <span>Selecione ou Capture as Imagens</span>
+        <input type="file" class="file" accept="image/*" capture="environment">
         <button class="btn">Gerar OCR</button>
-        <button class="capture-btn" style="display:none;">Capturar Imagens</button>
-        <video id="video" autoplay></video>
+        <video id="video" autoplay style="display:none;"></video>
         <canvas id="canvas" style="display:none;"></canvas>
-        <button class="snap-front-btn" style="display:none;">Capturar Frente</button>
-        <button class="snap-back-btn" style="display:none;">Capturar Traseira</button>
-        <img src="" class="front-preview">
-        <img src="" class="back-preview">
-        <div class="progress-bar">
-            <div class="progress-bar-fill"></div>
-        </div>
-        <div class="progress-info"></div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        let api = "https://script.google.com/macros/s/AKfycbxGgPnMwV7MLIyhTfPIYqXbRA4-e6RJ8JGfF22h6dfkHH_m-slT6wC2GrsBfuxajhUD/exec";
+        let msg = document.querySelector(".message");
+        let fileInput = document.querySelector(".file");
+        let btn = document.querySelector(".btn");
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let frontImage = null;
+        let backImage = null;
+
+        btn.addEventListener('click', () => {
+            if (frontImage && backImage) {
+                combineImagesAndProcess();
+            } else {
+                alert("Por favor, capture ambas as imagens antes de gerar o OCR.");
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            let file = fileInput.files[0];
+            if (file) {
+                captureImage();
+            }
+        });
+
+        const captureImage = () => {
+            const constraints = {
+                video: {
+                    facingMode: { exact: "environment" } // Use rear camera
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    video.style.display = 'block';
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        video.play();
+                    };
+                })
+                .catch(error => {
+                    console.error("Erro ao acessar a câmera: ", error);
+                    alert("Erro ao acessar a câmera traseira. Por favor, verifique as permissões.");
+                });
+        };
+
+        const combineImagesAndProcess = () => {
+            let frontDataURL = frontImage.src;
+            let backDataURL = backImage.src;
+
+            let pdf = new jsPDF();
+            pdf.addImage(frontDataURL, 'PNG', 10, 10, 100, 100);
+            pdf.addPage();
+            pdf.addImage(backDataURL, 'PNG', 10, 10, 100, 100);
+
+            let pdfDataUri = pdf.output('datauristring');
+
+            let fr = new FileReader();
+            fr.readAsDataURL(dataURLtoBlob(pdfDataUri));
+            fr.onload = () => {
+                let res = fr.result;
+                let b64 = res.split("base64,")[1];
+                fetch(api, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        file: b64,
+                        type: "application/pdf",
+                        name: "combined_images.pdf"
+                    })
+                })
+                .then(res => res.text())
+                .then(data => {
+                    msg.innerHTML = ``;
+                    downloadTextFile(data, "OCR_Resultado.txt");
+                });
+            };
+        };
+
+        const dataURLtoBlob = (dataURL) => {
+            let parts = dataURL.split(',');
+            let byteString = atob(parts[1]);
+            let mimeType = parts[0].split(':')[1].split(';')[0];
+            let arr = new Uint8Array(byteString.length);
+            for (let i = 0; i < byteString.length; i++) {
+                arr[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([arr], { type: mimeType });
+        };
+
+        function downloadTextFile(text, filename) {
+            let blob = new Blob([text], { type: 'text/plain' });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        }
+    </script>
 </body>
 </html>
