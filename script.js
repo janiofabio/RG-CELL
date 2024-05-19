@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('canvas');
     const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
+    // Detect if the user is on a mobile device
+    const isMobileDevice = () => {
+        return /Mobi|Android/i.test(navigator.userAgent);
+    };
+
+    if (isMobileDevice()) {
+        captureBtn.style.display = 'block';
+    }
+
     // Process PDF file
     btn.addEventListener('click', () => {
         const file = fileInput.files[0];
