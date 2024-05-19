@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR PDF COM DRIVE API GOOGLE APP SCRIPT</title>
+    <style>
+        .ocr {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .ocr * {
+            margin-top: 5px;
+        }
+        .text {
+            width: 80%;
+            height: 150px;
+        }
+        .progress-bar {
+            width: 80%;
+            height: 20px;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            position: relative;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .progress-info {
+            width: 80%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="ocr">
+        <h1>Imagem PDF OCR</h1>
+        <h2 class="message"></h2>
+        <span>Selecione o PDF ou capture uma imagem</span>
+        <input type="file" class="file">
+        <button class="btn">Gerar OCR</button>
+        <button class="capture-btn">Capturar Imagem</button>
+        <video id="video" width="320" height="240" autoplay style="display:none;"></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-info"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
