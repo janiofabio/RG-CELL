@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Process PDF file or images
     btn.addEventListener('click', () => {
         if (frontImage && backImage) {
-            processImages(frontImage, backImage);
+            convertImagesToPDF(frontImage, backImage);
         } else {
             const file = fileInput.files[0];
             if (!file) {
@@ -135,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(api, {
             method: "POST",
             body: JSON.stringify({
-                frontImage: frontImage ? frontImage.split("base64,")[1] : null,
-                backImage: backImage ? backImage.split("base64,")[1] : null,
                 pdfFile: b64,
                 type: type,
                 name: name
@@ -170,40 +168,31 @@ document.addEventListener('DOMContentLoaded', () => {
         a.remove();
     };
 
-    // Function to process images
-    const processImages = (frontImage, backImage) => {
-        msg.innerHTML = `Carregando...`;
-        progressBarFill.style.width = '0%';
-        progressInfo.innerHTML = '';
+    // Function to convert images to PDF and then upload
+    const convertImagesToPDF = (frontImage, backImage) => {
+        const pdfDoc = PDFLib.PDFDocument.create();
 
-        let startTime = Date.now();
+        const addImageToPDF = async (pdfDoc, imageData) => {
+            const img = await pdfDoc.embedPng(imageData);
+            const page = pdfDoc.addPage([img.width, img.height]);
+            page.drawImage(img, {
+                x: 0,
+                y: 0,
+                width: img.width,
+                height: img.height
+            });
+        };
 
-        let uploadProgress = setInterval(() => {
-            let elapsed = Date.now() - startTime;
-            let percentComplete = Math.min(100, (elapsed / 2000) * 100); // Simulated progress
-            progressBarFill.style.width = `${percentComplete}%`;
-            progressInfo.innerHTML = `Carregando: ${Math.round(percentComplete)}% - Tempo restante: ${Math.max(0, ((2000 - elapsed) / 1000).toFixed(1))}s`;
-            if (percentComplete >= 100) clearInterval(uploadProgress);
-        }, 100);
-
-        fetch(api, {
-            method: "POST",
-            body: JSON.stringify({
-                frontImage: frontImage.split("base64,")[1],
-                backImage: backImage.split("base64,")[1]
+        addImageToPDF(pdfDoc, frontImage)
+            .then(() => addImageToPDF(pdfDoc, backImage))
+            .then(() => pdfDoc.saveAsBase64({ dataUri: true }))
+            .then(pdfDataUri => {
+                const b64 = pdfDataUri.split("base64,")[1];
+                uploadToServer(b64, 'application/pdf', 'captured_images.pdf', Date.now());
             })
-        })
-        .then(res => res.text())
-        .then(data => {
-            clearInterval(uploadProgress);
-            progressBarFill.style.width = '100%';
-            msg.innerHTML = ``;
-            downloadTextFile(data, "OCR_Resultado.txt");
-        })
-        .catch(error => {
-            clearInterval(uploadProgress);
-            msg.innerHTML = `Erro ao processar as imagens.`;
-            console.error('Error:', error);
-        });
+            .catch(error => {
+                msg.innerHTML = `Erro ao converter imagens para PDF.`;
+                console.error('Error:', error);
+            });
     };
 });
