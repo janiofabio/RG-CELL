@@ -26,9 +26,9 @@
     <div class="ocr">
         <h1>Imagem PDF OCR</h1>
         <h2 class="message"></h2>
-        <span>Selecione ou Capture as Imagens</span>
+        <span>Selecione ou Capture a Imagem</span>
         <input type="file" class="file" accept="image/*" capture="environment">
-        <button class="btn">Gerar OCR</button>
+        <button class="btn">Gerar PDF e OCR</button>
         <video id="video" autoplay style="display:none;"></video>
         <canvas id="canvas" style="display:none;"></canvas>
     </div>
@@ -40,14 +40,13 @@
         let btn = document.querySelector(".btn");
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
-        let frontImage = null;
-        let backImage = null;
+        let capturedImage = null;
 
         btn.addEventListener('click', () => {
-            if (frontImage && backImage) {
-                combineImagesAndProcess();
+            if (capturedImage) {
+                convertImageToPDF();
             } else {
-                alert("Por favor, capture ambas as imagens antes de gerar o OCR.");
+                alert("Por favor, capture uma imagem antes de gerar o PDF e OCR.");
             }
         });
 
@@ -79,14 +78,9 @@
                 });
         };
 
-        const combineImagesAndProcess = () => {
-            let frontDataURL = frontImage.src;
-            let backDataURL = backImage.src;
-
+        const convertImageToPDF = () => {
             let pdf = new jsPDF();
-            pdf.addImage(frontDataURL, 'PNG', 10, 10, 100, 100);
-            pdf.addPage();
-            pdf.addImage(backDataURL, 'PNG', 10, 10, 100, 100);
+            pdf.addImage(capturedImage, 'PNG', 10, 10, 100, 100);
 
             let pdfDataUri = pdf.output('datauristring');
 
@@ -100,7 +94,7 @@
                     body: JSON.stringify({
                         file: b64,
                         type: "application/pdf",
-                        name: "combined_images.pdf"
+                        name: "captured_image.pdf"
                     })
                 })
                 .then(res => res.text())
