@@ -41,12 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Capture image from camera
+    // Capture image from rear camera
     captureBtn.addEventListener('click', async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.style.display = 'block';
-        snapBtn.style.display = 'block';
-        video.srcObject = stream;
+        const constraints = {
+            video: {
+                facingMode: { exact: "environment" } // Use rear camera
+            }
+        };
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.style.display = 'block';
+            snapBtn.style.display = 'block';
+            video.srcObject = stream;
+        } catch (error) {
+            console.error("Error accessing the camera: ", error);
+            alert("Erro ao acessar a câmera traseira. Por favor, verifique as permissões.");
+        }
     });
 
     // Snap photo
