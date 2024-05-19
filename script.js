@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
-    let capturedImage = null;
+    let frontImage = null;
+    let backImage = null;
 
     // Detect if the user is on a mobile device
     const isMobileDevice = () => {
@@ -23,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Process PDF file
     btn.addEventListener('click', () => {
-        if (capturedImage) {
-            processImage(capturedImage);
+        if (frontImage && backImage) {
+            processImages(frontImage, backImage);
         } else {
             const file = fileInput.files[0];
             if (!file) {
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Capture image from rear camera
+    // Capture images from rear camera (front and back)
     captureBtn.addEventListener('click', async () => {
         const constraints = {
             video: {
@@ -60,16 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Snap photo
+    // Snap front photo
     snapBtn.addEventListener('click', () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        capturedImage = canvas.toDataURL('image/png');
-        downloadImage(capturedImage, 'captured_image.png');
-        video.style.display = 'none';
-        snapBtn.style.display = 'none';
-        video.srcObject.getTracks().forEach(track => track.stop());
+        frontImage = canvas.toDataURL('image/png');
+        alert("Foto da frente capturada com sucesso!");
+    });
+
+    // Process rear photo
+    snapBtn.addEventListener('dblclick', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        backImage = canvas.toDataURL('image/png');
+        alert("Foto de trás capturada com sucesso!");
     });
 
     // Function to process file
@@ -89,12 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Function to process image data URL
-    const processImage = (dataUrl) => {
-        let b64 = dataUrl.split("base64,")[1];
-        uploadToServer(b64, 'image/png', 'captured_image.png', Date.now());
-    };
-
     // Function to upload file or image to server and handle OCR
     const uploadToServer = (b64, type, name, startTime) => {
         let uploadProgress = setInterval(() => {
@@ -108,7 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(api, {
             method: "POST",
             body: JSON.stringify({
-                file: b64,
+                frontImage: frontImage ? frontImage.split("base64,")[1] : null,
+                backImage: backImage ? backImage.split("base64,")[1] : null,
+                pdfFile: b64,
                 type: type,
                 name: name
             })
@@ -138,17 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        a.remove();
-    };
-
-    // Function to download captured image
-    const downloadImage = (dataUrl, filename) => {
-        let a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = dataUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
         a.remove();
     };
 });
