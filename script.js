@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Detect if the user is on a mobile device
     const isMobileDevice = () => {
-        return /Mobi|Android/i.test(navigator.userAgent);
+        return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     };
 
     if (isMobileDevice()) {
