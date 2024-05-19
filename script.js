@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let frontImage = null;
     let backImage = null;
 
+    // Detect if the user is on a mobile device
     const isMobileDevice = () => {
         return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     };
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         captureBtn.style.display = 'block';
     }
 
+    // Process PDF file
     btn.addEventListener('click', () => {
         if (frontImage && backImage) {
             processImages(frontImage, backImage);
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Capture images from rear camera (front and back)
     captureBtn.addEventListener('click', async () => {
         const constraints = {
             video: {
@@ -84,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Foto de trás capturada com sucesso!");
     });
 
+    // Function to process file
     const processFile = (file) => {
         msg.innerHTML = `Carregando...`;
         progressBarFill.style.width = '0%';
@@ -100,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Function to upload file or image to server and handle OCR
     const uploadToServer = (b64, type, name, startTime) => {
         let uploadProgress = setInterval(() => {
             let elapsed = Date.now() - startTime;
@@ -133,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Function to download text file
     const downloadTextFile = (text, filename) => {
         let blob = new Blob([text], { type: 'text/plain' });
         let url = window.URL.createObjectURL(blob);
